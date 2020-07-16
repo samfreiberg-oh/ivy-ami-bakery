@@ -1,0 +1,167 @@
+---
+# Import tasks for the specific OS being built
+- include: "{{ ansible_distribution }}.yml"
+
+# Common to all distributions
+- name: ensuring limits.conf is up to date
+  copy:
+    src: etc/security/limits.conf
+    dest: /etc/security/limits.conf
+    mode: 0644
+
+#- name: root authorized_key
+#  authorized_key:
+#    user: root
+#    key: "{{ item }}"
+#  with_file:
+#    - public_keys/infeng
+
+- name: create ivy user
+  user:
+    name: ivy
+    shell: /sbin/nologin
+    home: /var/empty
+    system: yes
+
+- name: create /opt/ivy/cloud-tools/(msr-cloud-tools|bpf-perf-tools-book)
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/ivy
+    - /opt/ivy/misc-tools
+    - /opt/ivy/misc-tools/msr-cloud-tools
+    - /opt/ivy/misc-tools/bpf-perf-tools-book
+
+- name: clone msr-cloud-tools and bpf-perf-tools
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+  loop:
+    - { repo: 'https://github.com/brendangregg/msr-cloud-tools.git', dest: '/opt/ivy/misc-tools/msr-cloud-tools' }
+    - { repo: 'https://github.com/brendangregg/bpf-perf-tools-book.git', dest: '/opt/ivy/misc-tools/bpf-perf-tools-book' }
+
+- name: install custom scripts
+  copy:
+    src: opt/ivy/
+    dest: /opt/ivy/
+    mode: 0755
+
+- name: override ivy default tag if ansible var present
+  lineinfile:
+    path: /opt/ivy/tag
+    line: "{{ ivy_tag }}"
+    create: yes
+  when: ivy_tag != "" # noqa 602
+
+- name: install datadog
+  shell:
+    creates: /etc/datadog-agent
+    cmd: "DD_API_KEY={{ datadog_api_key }} /opt/ivy/install_datadog.sh"
+
+- name: setup syslog logrotation
+  copy:
+    src: etc/logrotate.d/syslog
+    dest: /etc/logrotate.d/syslog
+
+- name: remove dateext from logrotate
+  lineinfile:
+    dest: "/etc/logrotate.conf"
+    regexp: "^dateext$"
+    line: '#dateext'
+
+- name: make logrotate hourly
+  command:
+    creates: "/etc/cron.hourly/logrotate"
+    cmd: "mv /etc/cron.daily/logrotate /etc/cron.hourly/logrotate"
+
+- name: disable icmp redirect messages in cloud environments
+  copy:
+    src: etc/sysctl.d/01-no-icmp-redirect.conf
+    dest: /etc/sysctl.d/01-no-icmp-redirect.conf
+    mode: 0644
+
+- name: add udev rule to map instance storage to /dev/ephemeral
+  copy:
+    src: etc/udev/rules.d/99-aws-ephemeral-devices.rules
+    dest: /etc/udev/rules.d/99-aws-ephemeral-devices.rules
+    mode: 0644
+
+- name: add script to link instance storage to /dev/ephemeral
+  copy:
+    src: usr/local/bin/nextdevice
+    dest: /usr/local/bin/nextdevice
+    mode: 0755
+
+- name: install epel
+  yum:
+    name: epel-release
+    state: latest
+
+- name: copy bpftrace to /usr/local/bin
+  copy:
+    remote_src: yes
+    src: /root/bpftrace
+    dest: /usr/local/bin/bpftrace
+    mode: 0755
+
+- name: install utilities
+  yum:
+    name:
+      - bcc
+      - curl
+      - gcc
+      - glibc-devel
+      - htop
+      - iperf
+      - iproute
+      - iproute-tc
+      - iptraf
+      - jq
+      - "kernel-devel-{{ ansible_kernel }}"
+      - make
+      - mdadm
+      - msr-tools
+      - nload
+      - nmap-ncat
+      - ntp
+      - nvme-cli
+      - perf
+      - sysstat
+      - tmux
+      - traceroute
+      - unzip
+      - wget
+      - xfsprogs
+      - tcpdump
+      - systemd-devel
+    state: latest
+    enablerepo: epel
+
+- name: install development tools
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: add ivy bash profile tweaks
+  copy:
+    src: etc/profile.d/ivy.sh
+    dest: /etc/profile.d/ivy.sh
+    mode: 0644
+
+- name: make rsyslog spool dir
+  file:
+    path: /var/spool/rsyslog
+    state: directory
+    mode: 0755
+
+- name: perform system yum update
+  yum:
+    name: "*"
+    state: latest
+
+- name: install pip packages
+  pip:
+    name: "awscli"
+    state: latest
+    extra_args: '--ignore-installed --trusted-host pypi.python.org'

@@ -1,0 +1,9 @@
+/var/log/zookeeper/zookeeper.log /var/log/zookeeper/zookeeper.out {
+  rotate 10
+  size 100M
+  weekly
+  compress
+  delaycompress
+  copytruncate
+  notifempty
+}

@@ -1,0 +1,10 @@
+[Unit]
+Description=Consul Forwarder
+After=consul.service
+
+[Service]
+ExecStart=/usr/bin/socat TCP-L:8500,bind=172.17.42.1,fork TCP:localhost:8500
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

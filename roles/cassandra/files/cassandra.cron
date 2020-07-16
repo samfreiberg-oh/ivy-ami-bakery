@@ -1,0 +1,11 @@
+#
+# Run a cassandra backup of the local shard and store it as an EBS snapshot
+#
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+30 7 * * * root /opt/ivy/cassandrabackups.sh cron >> /var/log/cassandrabackups.log 2>&1
+
+# Increase compactionthroughput to 999 MB/s at midnight
+00 6 * * * root /usr/bin/nodetool setcompactionthroughput 999
+
+# Decrease compactionthroughput to 32 MB/s during the day
+00 12 * * * root /usr/bin/nodetool setcompactionthroughput 64

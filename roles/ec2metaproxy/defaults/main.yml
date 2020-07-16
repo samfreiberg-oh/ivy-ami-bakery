@@ -1,0 +1,4 @@
+---
+ec2metaproxy_version: "0.0.1"
+ec2metaproxy_docker_repository: "nxtlytics/ec2metaproxy"
+ec2metaproxy_docker_image: "{{ ec2metaproxy_docker_repository }}:{{ ec2metaproxy_version }}"

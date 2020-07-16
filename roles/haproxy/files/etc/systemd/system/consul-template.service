@@ -1,0 +1,12 @@
+[Unit]
+Description=consul-template
+Requires=network-online.target
+After=network-online.target consul.service
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/consul-template
+Restart=on-failure
+ExecStart=/opt/ivy/consul-template/consul-template $OPTIONS -config=/opt/ivy/consul-template/consul-template.hcl
+
+[Install]
+WantedBy=multi-user.target

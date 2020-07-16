@@ -1,0 +1,64 @@
+- name: create consul group
+  group: >
+    name={{ consul_group }}
+    state=present
+
+- name: create consul user
+  user: >
+    name={{ consul_user }}
+    group={{ consul_group }}
+    system=yes
+
+- name: create consul directories
+  file: >
+    state=directory
+    path={{ item }}
+    owner={{ consul_user }}
+    group={{ consul_group }}
+  with_items:
+    - "{{ consul_home }}"
+    - "{{ consul_home }}/bin"
+    - "{{ consul_home }}/cert"
+    - "{{ consul_home }}/dist"
+    - "{{ consul_data_dir }}"
+    - "{{ consul_config_dir }}"
+
+# Sometimes, consul isn't working yet for DNS, give it a few seconds to settle
+- name: wait for dns to be up
+  wait_for: host=google.com timeout=30
+
+- name: install consul
+  # Skip lint for this, ansible does not have an easy way to download and extract file to location in a succinct manner
+  # noqa 303
+  shell: >
+    curl -L {{ consul_url }} -o /tmp/consul.zip &&
+    unzip /tmp/consul.zip -d "{{ consul_home }}/bin/" &&
+    rm -rf /tmp/consul*
+  args:
+    creates: "{{ consul_home }}/bin/consul"
+
+- name: set ownership
+  file: >
+    state=directory
+    path={{ consul_home }}
+    owner={{ consul_user }}
+    group={{ consul_group }}
+    recurse=yes
+
+- name: consul symlink to /usr/local/bin
+  file: src={{ consul_home }}/bin/consul dest=/usr/local/bin/consul owner=root group=root state=link
+
+- name: consul setup file
+  copy: src=opt/ivy/configure_consul.sh dest=/opt/ivy/configure_consul.sh mode=0755
+
+- name: consul base config
+  copy: src=etc/consul.d/consul-base.json dest=/etc/consul.d/consul-base.json
+
+- name: patch dnsmasq.conf to include /etc/dnsmasq.d
+  replace: dest=/etc/dnsmasq.conf regexp='^#conf-dir=/etc/dnsmasq.d$' replace='conf-dir=/etc/dnsmasq.d'
+
+- name: configure dnsmasq
+  copy: src=etc/dnsmasq.d/10-dnsmasq dest=/etc/dnsmasq.d/10-dnsmasq
+
+- name: setup logrotation
+  copy: src=etc/logrotate.d/consul dest=/etc/logrotate.d/consul

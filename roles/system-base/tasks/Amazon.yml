@@ -1,0 +1,16 @@
+---
+#### Amazon Linux Specific Tweaks ####
+- name: enable epel and bcc via amazon-linux-extras
+  # Amazon-linux-extras is required to enable epel
+  # noqa 301 305
+  shell: |
+    amazon-linux-extras enable epel
+    amazon-linux-extras enable BCC
+
+
+# Amazon SSM agent is unnecessary, we have consul and ansible.
+- name: disable amazon-ssm-agent
+  systemd:
+    name: amazon-ssm-agent
+    enabled: no
+    state: stopped

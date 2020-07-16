@@ -1,0 +1,27 @@
+---
+
+# TODO: Redo this. there's no reason this should be a docker container other than your laziness.
+
+#- name: ensure docker is stopped if running on Amazon because we use chroot bindmount
+#  service:
+#    name: docker
+#    state: stopped
+#  when: ansible_distribution == 'Amazon'
+
+- name: pull docker registrator images
+  docker_image:
+    name: gliderlabs/registrator
+    tag: v6
+    source: pull
+
+- name: save registrator image to tar since /mnt is wiped
+  docker_image:
+    name: gliderlabs/registrator
+    tag: v6
+    archive_path: /root/registrator.tar
+
+- name: copy registrator setup script
+  copy:
+    src: "opt/ivy/setup_registrator.sh"
+    dest: "/opt/ivy/setup_registrator.sh"
+    mode: 0755

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Originally docker pull put images in /mnt/docker/, but
+# that is ephemeral and is wiped during boot of EC2 instances.
+# So packer instead pulls the image and saves it to a file that is
+# included in the AMI. We then need to load it from disk here
+# back to a usable docker image.
+docker load < /root/ec2metaproxy.tar
+
+docker rm -f ec2metaproxy
+docker run -d \
+    --net=host \
+    --restart always \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --name=ec2metaproxy \
+    ec2metaproxy:latest "$@"
+
+bash /opt/ec2metaproxy/setup_iptables.sh

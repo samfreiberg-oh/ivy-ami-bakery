@@ -1,0 +1,85 @@
+---
+- name: install openjdk-8
+  yum:
+    name: java-1.8.0-openjdk-headless
+    state: present
+
+- name: remove openjdk-7
+  yum:
+    name: java-1.7.0-openjdk
+    state: removed
+
+- name: create kafka user and homedir
+  user:
+    name: kafka
+    shell: /sbin/nologin
+    home: /var/lib/kafka
+    system: yes
+
+- name: create kafka data directory
+  file:
+   name: /var/lib/kafka/data
+   state: directory
+   owner: kafka
+   group: kafka
+
+- name: create kafka conf directory
+  file:
+   name: /etc/kafka
+   state: directory
+
+- name: create kafka app directory
+  file:
+   name: /opt/kafka
+   state: directory
+
+- name: create kafka logs directory
+  file:
+   name: /var/log/kafka
+   state: directory
+   owner: kafka
+   group: adm
+
+- name: download kafka release tar
+  unarchive:
+    src: "{{ kafka_url }}"
+    dest: /opt/kafka/
+    remote_src: True
+    owner: root
+    group: root
+
+- name: symlink kafka install to latest
+  file:
+    dest: /opt/kafka/latest
+    src: "/opt/kafka/{{ full_version }}"
+    state: link
+
+- name: copy kafka config file
+  copy:
+    src: etc/kafka/
+    dest: /etc/kafka/
+    owner: root
+    group: root
+    mode: 644
+
+- name: copy kafka env file
+  copy:
+    src: etc/sysconfig/kafka
+    dest: /etc/sysconfig/kafka
+    owner: root
+    group: root
+    mode: 644
+
+- name: copy systemd unit file
+  copy:
+    src: etc/systemd/system/
+    dest: /etc/systemd/system/
+
+# Kafka uses log4j + DailyRollingFileAppender, which creates files like
+# kafkaServer.log ... kafkaServer.log.2019-01-01 as time passes.
+# Logrotate is not compatible with this, so use a simple find cron job instead
+# Java GC logs are rotated by java itself.
+- name: copy log cleaner cron
+  copy:
+    src: etc/cron.d/kafka
+    dest: /etc/cron.d/

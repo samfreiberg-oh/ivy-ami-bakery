@@ -1,0 +1,4 @@
+#
+# Clean up unused docker images
+#
+/opt/ivy/cleanup_docker.sh | logger -t cleanup_docker

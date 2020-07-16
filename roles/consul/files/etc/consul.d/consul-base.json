@@ -1,0 +1,13 @@
+{
+  "telemetry": {
+    "statsd_address": "127.0.0.1:8125"
+  },
+  "dns_config": {
+    "node_ttl": "5s",
+    "service_ttl": {
+      "*": "5s"
+    }
+  },
+  "enable_local_script_checks": true,
+  "disable_remote_exec": false
+}

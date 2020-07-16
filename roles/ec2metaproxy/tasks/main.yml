@@ -1,0 +1,25 @@
+---
+# TODO: Not use docker
+
+- name: checkout latest ec2metaproxy
+  git:
+    repo: https://github.com/nxtlytics/ec2metaproxy.git
+    dest: /opt/ec2metaproxy
+    accept_hostkey: yes
+    version: "{{ ec2metaproxy_version }}"
+
+- name: pull ec2metaproxy container
+  docker_image:
+    pull: yes
+    name: "{{ ec2metaproxy_docker_image }}"
+
+- name: save ec2metaproxy image to tar since /mnt is wiped
+  command: "/usr/bin/docker save -o /root/ec2metaproxy.tar {{ ec2metaproxy_docker_image }}"
+
+- name: copy ec2metaproxy.sh scripts
+  copy:
+    src: "opt/ivy/{{ item }}"
+    dest: "/opt/ivy/{{ item }}"
+    mode: 0755
+  loop:
+    - ec2metaproxy.sh

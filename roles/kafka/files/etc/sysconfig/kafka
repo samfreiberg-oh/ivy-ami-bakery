@@ -1,0 +1,8 @@
+# These environment variables are sent to the kafka service
+KAFKA_HOME=/etc/kafka
+LOG_DIR=/var/log/kafka/
+# systemd does not expand variables in EnvironmentFile :(
+KAFKA_LOG4J_OPTS="-Dlog4j.configuration=file:/etc/kafka/log4j.properties"
+JMX_PORT=9999
+
+# Lines below here are added by cloud-init

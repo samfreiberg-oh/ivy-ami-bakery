@@ -1,0 +1,29 @@
+---
+# Import tasks for the specific OS being built
+- include: "{{ ansible_distribution }}.yml"
+
+- name: create docker group
+  group:
+    name: docker
+
+- name: add datadog agent to the docker group
+  user:
+    name: dd-agent
+    append: yes
+    groups: docker
+
+- name: setup docker logrotation
+  copy:
+    src: etc/logrotate.d/docker
+    dest: /etc/logrotate.d/docker
+
+- name: ensure docker enabled
+  systemd:
+    name: docker
+    enabled: true
+
+- name: install pip packages
+  pip:
+    name: "docker-py"
+    state: latest
+    extra_args: '--ignore-installed --trusted-host pypi.python.org'

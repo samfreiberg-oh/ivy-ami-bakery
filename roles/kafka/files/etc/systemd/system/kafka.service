@@ -1,0 +1,14 @@
+[Unit]
+Description=Kafka Broker
+After=network.target
+
+[Service]
+EnvironmentFile=/etc/sysconfig/kafka
+ExecStart=/opt/kafka/latest/bin/kafka-server-start.sh ${KAFKA_HOME}/server.properties
+Restart=on-failure
+User=kafka
+LimitNOFILE=60000
+TimeoutSec=120
+
+[Install]
+WantedBy=multi-user.target

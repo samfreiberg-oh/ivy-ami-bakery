@@ -1,0 +1,13 @@
+[Unit]
+Description=Resize root XFS partition to fill disk
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -ec '/usr/bin/growpart /dev/sda 1; /usr/sbin/xfs_growfs /dev/sda1'
+TimeoutSec=0
+StandardInput=tty
+RemainAfterExit=yes
+
+[Install]
+WantedBy=local-fs.target

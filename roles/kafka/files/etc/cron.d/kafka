@@ -1,0 +1,3 @@
+# Cleanup kafka log files nightly after 3 days - don't touch the gc logs since java manages those
+# (the jvm does not appreciate truncation of files it has handles open to internally...)
+00 6 * * * root find /var/log/kafka -name "*.log.*" -not -name '*-gc.log* -mtime +3 -delete;

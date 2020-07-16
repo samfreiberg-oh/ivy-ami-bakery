@@ -1,0 +1,7 @@
+/mnt/docker/work_dir/slaves/*/frameworks/*/executors/*/runs/latest/stderr /mnt/docker/work_dir/slaves/*/frameworks/*/executors/*/runs/latest/stdout {
+  rotate 10
+  minsize 1G
+  compress
+  delaycompress
+  copytruncate
+}

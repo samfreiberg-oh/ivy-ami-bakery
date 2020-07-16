@@ -1,0 +1,102 @@
+---
+- name: install haproxy build dependencies
+  yum:
+    name:
+      - pcre-devel
+      - zlib-devel
+      - openssl-devel
+      - systemd-devel
+    state: latest
+    enablerepo: epel
+
+- unarchive: src="http://git.haproxy.org/?p=haproxy-2.1.git;a=snapshot;h=e54b43af1ec9dc656c04b09118583cb3c2ce56fa;sf=tgz" dest=/usr/src/ copy=no
+
+- name: build & install haproxy from source
+  shell: >
+    cd /usr/src/haproxy-2.1-e54b43a &&
+    make TARGET=linux-glibc USE_SYSTEMD=1 USE_ZLIB=yes USE_PCRE=1 USE_OPENSSL=1 USE_LIBCRYPT=1 &&
+    make install TARGET=linux-glibc USE_SYSTEMD=1 &&
+    make -C contrib/systemd/ &&
+    install -m 644 contrib/systemd/haproxy.service /etc/systemd/system/ &&
+    ln -sf /usr/local/sbin/haproxy /usr/sbin/haproxy
+
+- user: name=haproxy shell=/sbin/nologin home=/var/lib/haproxy
+
+- name: copy haproxy logrotate.d conf
+  copy:
+    src: etc/logrotate.d/haproxy
+    dest: /etc/logrotate.d/haproxy
+
+- name: create /etc/haproxy/errors config directory
+  file:
+    name: /etc/haproxy/errors
+    state: directory
+
+- name: create haproxy chroot skeleton
+  file:
+    name: /var/lib/haproxy/dev
+    state: directory
+
+# NOTE: don't copy this file if you have the rsyslogv8 role (file already exists)
+- name: check if haproxy config already exists
+  stat:
+    path: /etc/rsyslog.d/49-haproxy.conf
+  register: haproxy_file
+
+- name: copy rsyslog config for haproxy
+  copy:
+    src: etc/rsyslog.d/49-haproxy.conf
+    dest: /etc/rsyslog.d/49-haproxy.conf
+    mode: 0644
+  when: not haproxy_file.stat.exists
+
+- name: increase the number of DGRAM sockets allowed
+  copy:
+    src: etc/sysctl.d/20-dgram-limit.conf
+    dest: /etc/sysctl.d/20-dgram-limit.conf
+    mode: 0644
+
+- name: lower udp conntrack timeout
+  copy:
+    src: etc/sysctl.d/25-udp-conntrack-timeout.conf
+    dest: /etc/sysctl.d/25-udp-conntrack-timeout.conf
+    mode: 0644
+
+- name: raise tcp backlog threshold
+  copy:
+    src: etc/sysctl.d/26-tcp-backlog.conf
+    dest: /etc/sysctl.d/26-tcp-backlog.conf
+    mode: 0644
+
+- name: create consul-template template dirs
+  file:
+    dest: /opt/ivy/consul-template/tpl
+    state: directory
+
+- name: install consul-template
+  shell: >
+    curl -L https://releases.hashicorp.com/consul-template/0.23.0/consul-template_0.23.0_linux_amd64.zip -o /tmp/consul-template.zip &&
+    unzip /tmp/consul-template.zip -d /opt/ivy/consul-template/ &&
+    rm -rf /tmp/consul*
+
+- name: checkout haproxy error pages
+  git:
+    repo: https://github.com/Jonathan-Rosewood/haproxy-custom-errors.git
+    dest: /etc/haproxy/errors
+    accept_hostkey: yes
+
+- name: copy consul_template configs
+  copy: src="{{ item }}" dest="/{{ item }}"
+  with_items:
+    - etc/systemd/system/consul-template.service
+    - etc/haproxy/haproxy.cfg
+    - opt/ivy/consul-template/reload_haproxy.sh
+    - opt/ivy/consul-template/tpl/mesos-slave-haproxy.cfg.tmpl
+    - opt/ivy/consul-template/tpl/blocked_ips.tmpl
+    - opt/ivy/consul-template/consul-template.hcl
+
+- name: ensure executables
+  file: path="{{ item }}" mode=0755
+  with_items:
+    - /opt/ivy/consul-template/reload_haproxy.sh
+    - /opt/ivy/consul-template/consul-template
