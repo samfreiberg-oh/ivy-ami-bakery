@@ -24,12 +24,13 @@ This requires:
 - docker (on the host)
 - IAM role
 
-```
+```shell
 Bake AMI from Ansible roles using Packer
 
- Usage: build.sh -p PROVIDER -i IMAGE -r REGIONS -m MULTI-ACCOUNT_PROFILE [-d]
+ Usage: build.sh -p PROVIDER -i IMAGE -r REGIONS -m MULTI-ACCOUNT_PROFILE [-v 'var1_name=value1,var2_name=value2'] [-d]
 
  Options:
+   -v    variables and their values to pass to packer, key value pairs separated by commas
    -p    provider to use (amazon|google|nocloud|...)
    -r    regions to copy this image to (comma separated values)
    -m    awscli profile that can assume role to list all accounts in this org
@@ -37,7 +38,9 @@ Bake AMI from Ansible roles using Packer
    -d    enable debug mode
 ```
 
-Sample:
-```
-AWS_PROFILE=your-profile ./build.sh -p amazon -i ivy-base
+Examples:
+
+```shell
+AWS_PROFILE=your-profile ./build.sh -p amazon -i ivy-base -v 'datadog_api_key=your-datadog-api-key'
+AWS_PROFILE=your-profile ./build.sh -p amazon -i ivy-mesos
 ```

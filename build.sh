@@ -154,7 +154,7 @@ function show_help() {
     cat <<EOT
 Bake AMI from Ansible roles using Packer
 
- Usage: $(basename $0) -p PROVIDER -i IMAGE -r REGIONS -m MULTI-ACCOUNT_PROFILE -v 'var1_name=value1,var2_name=value2' [-d]
+ Usage: $(basename $0) -p PROVIDER -i IMAGE -r REGIONS -m MULTI-ACCOUNT_PROFILE [-v 'var1_name=value1,var2_name=value2'] [-d]
 
  Options:
    -v    variables and their values to pass to packer, key value pairs separated by commas
