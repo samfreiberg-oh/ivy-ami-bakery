@@ -5,7 +5,8 @@
         "ami_regions": "{{env `PACKER_IMAGE_REGIONS`}}",
         "source_ami": "{{env `PACKER_SOURCE_IMAGE`}}",
         "volume_size": "{{env `PACKER_VOLUME_SIZE`}}",
-        "ivy_tag": "{{env `PACKER_IVY_TAG`}}"
+        "ivy_tag": "{{env `PACKER_IVY_TAG`}}",
+        "datadog_api_key": ""
     },
     "builders": [
         {
@@ -43,7 +44,7 @@
             "type": "ansible-local",
             "playbook_file": "./providers/amazon/images/{{user `ami_name`}}/provision.yml",
             "playbook_dir": "./roles",
-            "extra_arguments": [ "--extra-vars \"ivy_tag={{user `ivy_tag`}}\"" ],
+            "extra_arguments": [ "--extra-vars \"ivy_tag={{user `ivy_tag`}} datadog_api_key={{user `datadog_api_key`}}\"" ],
             "clean_staging_directory": true
         },
         {

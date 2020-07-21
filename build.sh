@@ -95,11 +95,27 @@ EOT
     fi
 }
 
+function get_packer_vars() {
+    local vars="${1:-""}"
+    declare -a VARIABLES_TO_PASS ARGUMENTS_TO_PASS
+    VARIABLES_TO_PASS=( $(echo "${vars}" | tr ',' '\n') )
+    if [ "${#VARIABLES_TO_PASS[@]}" -gt '0' ]; then
+        for i in "${VARIABLES_TO_PASS[@]}"; do
+            ARGUMENTS_TO_PASS+=("-var ${i}")
+        done
+    else
+	echo ""
+	return
+    fi
+    echo "${ARGUMENTS_TO_PASS[@]}"
+}
+
 function run_packer() {
-    # This is needed when using RedHat based distros
-    # More info at https://www.packer.io/intro/getting-started/install.html#troubleshooting
+    local ARGUMENTS="${1:-""}"
     echo "Downloading bpftrace"
     bash ./scripts/bpftrace/download_bpftrace.sh
+    # This is needed when using RedHat based distros
+    # More info at https://www.packer.io/intro/getting-started/install.html#troubleshooting
     PACKER_BINS=( $(type -a packer | awk '{ print $3 }') )
     echo "These are the packer bins available in your PATH: ${PACKER_BINS[@]}"
     for bin in ${PACKER_BINS[@]}; do
@@ -108,17 +124,17 @@ function run_packer() {
       fi
     done
     if [[ -z "${DEBUG}" ]]; then
-        ${PACKER} build ${DEBUG} ${PACKER_CONFIG_PATH}
+        ${PACKER} build ${ARGUMENTS} ${DEBUG} ${PACKER_CONFIG_PATH}
     else
         echo "Environment configuration ===================="
         env | egrep -v '.*_PASS' | awk -F'=' '{st = index($0,"="); printf("\033[0;35m%-50s\033[0m= \"%s\"\n", $1, substr($0,st+1))}'
         echo "=============================================="
-        PACKER_LOG=1 packer build ${DEBUG} ${PACKER_CONFIG_PATH}
+        PACKER_LOG=1 ${PACKER} build ${ARGUMENTS} ${DEBUG} ${PACKER_CONFIG_PATH}
     fi
 }
 
 function validate_provider() {
-    local provider=$1
+    local provider="${1}"
     if ! [[ -d ./providers/${provider} ]]; then
         echo -e "${bold}ERROR:${norm} no such provider '${provider}'."
         exit 1
@@ -126,8 +142,8 @@ function validate_provider() {
 }
 
 function validate_image() {
-    local provider=$1
-    local image=$2
+    local provider="${1}"
+    local image="${2}"
     if ! [[ -d ./providers/${provider}/images/${image} ]]; then
         echo -e "${bold}ERROR:${norm} no such image '${image}'."
         exit 1
@@ -138,9 +154,10 @@ function show_help() {
     cat <<EOT
 Bake AMI from Ansible roles using Packer
 
- Usage: $(basename $0) -p PROVIDER -i IMAGE -r REGIONS -m MULTI-ACCOUNT_PROFILE [-d]
+ Usage: $(basename $0) -p PROVIDER -i IMAGE -r REGIONS -m MULTI-ACCOUNT_PROFILE [-v 'var1_name=value1,var2_name=value2'] [-d]
 
  Options:
+   -v    variables and their values to pass to packer, key value pairs separated by commas
    -p    provider to use (amazon|google|nocloud|...)
    -r    regions to copy this image to (comma separated values)
    -m    awscli profile that can assume role to list all accounts in this org
@@ -149,31 +166,34 @@ Bake AMI from Ansible roles using Packer
 EOT
 }
 
-while getopts ":p:i:r:m:d" opt; do
+while getopts ":p:i:r:m:v:d" opt; do
     case ${opt} in
+        v)
+            vars="${OPTARG}"
+            ;;
         p)
-            provider=$OPTARG
+            provider="${OPTARG}"
             ;;
         i)
-            image=$OPTARG
+            image="${OPTARG}"
             ;;
         r)
-            regions=$OPTARG
+            regions="${OPTARG}"
             ;;
         m)
-            multiaccountprofile=$OPTARG
+            multiaccountprofile="${OPTARG}"
             ;;
 
         d)
             export DEBUG='--debug'
             ;;
         \?)
-            echo -e "${bold}Invalid option:${norm} $OPTARG" 1>&2
+            echo -e "${bold}Invalid option:${norm} ${OPTARG}" 1>&2
             show_help
             exit 1
             ;;
         :)
-            echo -e "${bold}Invalid option:${norm} $OPTARG requires an argument" 1>&2
+            echo -e "${bold}Invalid option:${norm} ${OPTARG} requires an argument" 1>&2
             show_help
             exit 1
             ;;
@@ -194,4 +214,5 @@ validate_image ${provider} ${image}
 
 # do it nao
 setup_env ${provider} ${image} ${regions:-""} ${multiaccountprofile:-""}
-run_packer
+arguments=$(get_packer_vars ${vars:-""})
+run_packer "${arguments:-""}"
