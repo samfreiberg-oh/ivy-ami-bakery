@@ -110,9 +110,12 @@
     name:
       - bcc
       - curl
+      - ethtool
       - gcc
+      - git
       - glibc-devel
       - htop
+      - iotop
       - iperf
       - iproute
       - iproute-tc
@@ -127,6 +130,8 @@
       - ntp
       - nvme-cli
       - perf
+      - rsync
+      - socat
       - sysstat
       - tmux
       - traceroute

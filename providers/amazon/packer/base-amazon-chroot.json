@@ -1,0 +1,55 @@
+{
+    "variables": {
+        "ami_name": "{{env `PACKER_IMAGE_NAME`}}",
+        "ami_users": "{{env `PACKER_IMAGE_USERS`}}",
+        "ami_regions": "{{env `PACKER_IMAGE_REGIONS`}}",
+        "source_ami": "{{env `PACKER_SOURCE_IMAGE`}}",
+        "volume_size": "{{env `PACKER_VOLUME_SIZE`}}",
+        "ivy_tag": "{{env `PACKER_IVY_TAG`}}",
+        "datadog_api_key": ""
+    },
+    "builders": [
+        {
+            "type": "amazon-chroot",
+            "ami_virtualization_type": "hvm",
+            "copy_files": ["/etc/resolv.conf", "/root/bpftrace"],
+            "source_ami": "{{user `source_ami`}}",
+            "ami_name": "{{user `ami_name`}}-{{timestamp}}",
+            "ami_users": "{{user `ami_users`}}",
+            "ami_regions": "{{user `ami_regions`}}",
+            "ena_support": true,
+            "sriov_support": true,
+            "chroot_mounts": [
+              ["proc", "proc", "/proc"],
+              ["sysfs", "sysfs", "/sys"],
+              ["bind", "/dev", "/dev"],
+              ["devpts", "devpts", "/dev/pts"],
+              ["binfmt_misc", "binfmt_misc", "/proc/sys/fs/binfmt_misc"],
+              ["tmpfs", "tmpfs", "/dev/shm"],
+              ["bind", "/var/run", "/var/opt"]
+            ],
+            "root_volume_size": "{{user `volume_size`}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": ["echo 'Bindmounting docker into chroot...'; ln -s /var/opt/docker.sock /var/run/docker.sock || true"]
+        },
+        {
+            "type": "shell",
+            "script": "./providers/amazon/packer/prepare.sh"
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "./providers/amazon/images/{{user `ami_name`}}/provision.yml",
+            "playbook_dir": "./roles",
+            "extra_arguments": [ "--extra-vars \"ivy_tag={{user `ivy_tag`}} datadog_api_key={{user `datadog_api_key`}}\"" ],
+            "clean_staging_directory": true
+        },
+        {
+            "type": "shell",
+            "inline": ["echo 'Removing docker symlink...'; rm /var/run/docker.sock"]
+        }
+    ]
+}
