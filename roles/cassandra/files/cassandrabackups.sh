@@ -67,7 +67,7 @@ function run_backup() {
     sync
 
     # Snapshot the volume
-    SNAPSHOT_ID=$(aws ec2 create-snapshot --region ${MY_REGION} --volume-id ${EBS_DATA_VOLUME_ID} --description "${TIMESTAMP} ${MY_ROLE} Backup" --output text --query "{ID:SnapshotId,STATE:State,VOLUME:VolumeId}" | awk '{print $1}')
+    SNAPSHOT_ID=$(aws ec2 create-snapshot --region ${MY_REGION} --volume-id ${EBS_DATA_VOLUME_ID} --description "${TIMESTAMP} ${MY_ROLE} Backup - Snapshot Name: ${SNAP_NAME}" --output text --query "{ID:SnapshotId,STATE:State,VOLUME:VolumeId}" | awk '{print $1}')
     sleep 5
 
     # Tag it!
