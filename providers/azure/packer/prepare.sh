@@ -13,8 +13,8 @@ yum groupinstall -y 'Development Tools'
 
 # Upgrade pip
 if [[ ! -f get-pip.py ]]; then
-    wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
+    wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py
 fi
 
 # Install ansible
-pip install --upgrade --trusted-host pypi.python.org ansible==2.10.0
+pip3 install --upgrade --trusted-host pypi.python.org ansible==2.10.0
