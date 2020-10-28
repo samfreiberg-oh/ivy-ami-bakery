@@ -17,9 +17,7 @@
   command: "/usr/bin/docker save -o /root/ec2metaproxy.tar {{ ec2metaproxy_docker_image }}"
 
 - name: copy ec2metaproxy.sh scripts
-  copy:
-    src: "opt/ivy/{{ item }}"
-    dest: "/opt/ivy/{{ item }}"
+  template:
+    src: opt/ivy/ec2metaproxy.sh.j2
+    dest: /opt/ivy/ec2metaproxy.sh
     mode: 0755
-  loop:
-    - ec2metaproxy.sh
