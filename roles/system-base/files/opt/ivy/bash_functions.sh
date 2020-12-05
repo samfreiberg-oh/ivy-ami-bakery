@@ -83,6 +83,18 @@ function get_ram_mb_by_percent() {
     echo ${MB}
 }
 
+function get_ram_mb_by_percent_for_java() {
+    local PERCENT=$1
+
+    MB=$(get_ram_mb_by_percent ${PERCENT})
+
+    if [ ${MB} -gt 31744 ]; then
+        echo "31744"
+    else
+        echo ${MB}
+    fi
+}
+
 function set_prompt_color() {
     local COLOR=$1
     echo -n "${COLOR}" > /etc/sysconfig/console/color
