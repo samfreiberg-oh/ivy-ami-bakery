@@ -1,0 +1,20 @@
+- name: trust rabbitmq key
+  rpm_key:
+    key: https://www.rabbitmq.com/rabbitmq-signing-key-public.asc
+    state: present
+
+- name: install packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "https://github.com/rabbitmq/erlang-rpm/releases/download/v{{ erlang_version }}/erlang-{{ erlang_version }}-1.el7.x86_64.rpm"
+    - "https://github.com/rabbitmq/rabbitmq-server/releases/download/v{{ rabbitmq_version }}/rabbitmq-server-{{ rabbitmq_version }}-1.el7.noarch.rpm"
+
+- name: disable rabbit on first boot
+  service:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  with_items:
+    - rabbitmq-server

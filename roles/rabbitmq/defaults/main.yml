@@ -1,0 +1,2 @@
+erlang_version: "23.1.4"
+rabbitmq_version: "3.8.9"
