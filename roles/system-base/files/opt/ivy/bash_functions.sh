@@ -83,13 +83,14 @@ function get_ram_mb_by_percent() {
     echo ${MB}
 }
 
-function get_ram_mb_by_percent_for_java() {
-    local PERCENT=$1
+function get_capped_ram_mb_by_percent() {
+    local PERCENT="${1}"
+    local LIMIT="${2:-31744}"
 
     MB=$(get_ram_mb_by_percent ${PERCENT})
 
-    if [ ${MB} -gt 31744 ]; then
-        echo "31744"
+    if [ ${MB} -gt ${LIMIT} ]; then
+        echo "${LIMIT}"
     else
         echo ${MB}
     fi
