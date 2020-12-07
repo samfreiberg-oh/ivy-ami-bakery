@@ -33,7 +33,7 @@ function get_environment() {
 
     echo $(aws ec2 describe-instances --region ${REGION} \
                                       --instance-id ${INSTANCE_ID} \
-                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):environment\`].Value" \
+                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):environment\` || Key==\`$(get_ivy_tag):sysenv\`].Value" \
                                       --output text)
 }
 
