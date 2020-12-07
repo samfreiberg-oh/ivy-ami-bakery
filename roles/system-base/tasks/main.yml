@@ -175,5 +175,4 @@
 
 - name: install awscli v2
   shell:
-    creates: /usr/local/bin/aws
-    cmd: /tmp/aws/install
+    cmd: /tmp/aws/install --update
