@@ -114,6 +114,7 @@
       - gcc
       - git
       - glibc-devel
+      - groff-base
       - htop
       - iotop
       - iperf
@@ -122,6 +123,7 @@
       - iptraf
       - jq
       - "kernel-devel-{{ ansible_kernel }}"
+      - less
       - make
       - mdadm
       - msr-tools
@@ -165,8 +167,13 @@
     name: "*"
     state: latest
 
-- name: install pip packages
-  pip:
-    name: "awscli"
-    state: latest
-    extra_args: '--ignore-installed --trusted-host pypi.python.org'
+- name: download and unarchive awscli v2
+  unarchive:
+    src: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+    dest: /tmp/
+    remote_src: yes
+
+- name: install awscli v2
+  shell:
+    creates: /usr/local/bin/aws
+    cmd: /tmp/aws/install

@@ -33,7 +33,37 @@ function get_environment() {
 
     echo $(aws ec2 describe-instances --region ${REGION} \
                                       --instance-id ${INSTANCE_ID} \
-                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):environment\` || Key==\`$(get_ivy_tag):sysenv\`].Value" \
+                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):sysenv\`].Value" \
+                                      --output text)
+}
+
+function get_service() {
+    local REGION=$(get_region)
+    local INSTANCE_ID=$(get_instance_id)
+
+    echo $(aws ec2 describe-instances --region ${REGION} \
+                                      --instance-id ${INSTANCE_ID} \
+                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):service\`].Value" \
+                                      --output text)
+}
+
+function get_role() {
+    local REGION=$(get_region)
+    local INSTANCE_ID=$(get_instance_id)
+
+    echo $(aws ec2 describe-instances --region ${REGION} \
+                                      --instance-id ${INSTANCE_ID} \
+                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):role\`].Value" \
+                                      --output text)
+}
+
+function get_group() {
+    local REGION=$(get_region)
+    local INSTANCE_ID=$(get_instance_id)
+
+    echo $(aws ec2 describe-instances --region ${REGION} \
+                                      --instance-id ${INSTANCE_ID} \
+                                      --query "Reservations[0].Instances[0].Tags[?Key==\`$(get_ivy_tag):group\`].Value" \
                                       --output text)
 }
 
@@ -45,7 +75,7 @@ function get_eni_id() {
     local ENV=$(get_environment)
     local TAG=$(get_ivy_tag)
     echo $(aws ec2 describe-network-interfaces --region ${REGION} \
-           --filters Name=tag:"${TAG}:environment",Values="${ENV}" \
+           --filters Name=tag:"${TAG}:sysenv",Values="${ENV}" \
                      Name=tag:"${TAG}:role",Values="${ENI_ROLE}" \
                      Name=tag:"${TAG}:service",Values="${SERVICE}" \
            --query 'NetworkInterfaces[0].NetworkInterfaceId' \

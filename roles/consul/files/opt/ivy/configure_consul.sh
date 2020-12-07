@@ -13,7 +13,7 @@ sed -i -e '/^#.*__IVY_TAG__/s/^#//' -e "s/__IVY_TAG__/${TAG}/" /etc/dnsmasq.d/10
 CONSUL_MASTERS=""
 if [[ $(get_cloud) -eq "aws" ]]; then
    MESOS_IPS=($(aws ec2 describe-network-interfaces --region $(get_region) \
-                   --filters Name=tag:"${TAG}:environment",Values="${ENV}"    \
+                   --filters Name=tag:"${TAG}:sysenv",Values="${ENV}"    \
                              Name=tag:"${TAG}:service",Values="Mesos"                 \
                    --query 'NetworkInterfaces[*].PrivateIpAddress'                \
                    --output text))
