@@ -54,6 +54,15 @@
     create: yes
   when: ivy_tag != "" # noqa 602
 
+- name: add azure cli repo
+  yum_repository:
+    name: azure-cli
+    description: Azure CLI
+    baseurl: https://packages.microsoft.com/yumrepos/azure-cli
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+    gpgcheck: yes
+    repo_gpgcheck: no
+
 - name: add datadog repo
   yum_repository:
     name: datadog
@@ -73,26 +82,6 @@
     gpgkey: https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg
     gpgcheck: yes
     repo_gpgcheck: yes
-
-- name: install new relic infrastructure and datadog agents
-  yum:
-    name:
-      - newrelic-infra
-      - datadog-agent
-    update_cache: yes
-    disablerepo: '*'
-    enablerepo:
-      - newrelic-infra
-      - datadog
-
-- name: disable newrelic-infra and datadog-agent on first boot
-  service:
-    name: "{{ item }}"
-    enabled: no
-    state: stopped
-  loop:
-    - datadog-agent
-    - newrelic-infra
 
 - name: copy gostatsd systemd unit for new relic
   copy:
@@ -145,8 +134,10 @@
 - name: install utilities
   yum:
     name:
+      - azure-cli
       - bcc
       - curl
+      - datadog-agent
       - ethtool
       - gcc
       - git
@@ -164,6 +155,7 @@
       - make
       - mdadm
       - msr-tools
+      - newrelic-infra
       - nload
       - nmap-ncat
       - ntp
@@ -180,7 +172,20 @@
       - tcpdump
       - systemd-devel
     state: latest
-    enablerepo: epel
+    enablerepo:
+      - azure-cli
+      - datadog
+      - epel
+      - newrelic-infra
+
+- name: disable newrelic-infra and datadog-agent on first boot
+  service:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  loop:
+    - datadog-agent
+    - newrelic-infra
 
 - name: install development tools
   yum:
