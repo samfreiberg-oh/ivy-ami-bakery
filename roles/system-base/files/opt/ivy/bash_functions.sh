@@ -36,6 +36,9 @@ function get_cloud() {
     if echo "${META_TEST}" | grep "computeMetadata" 2>&1 > /dev/null; then
         echo "google"
         echo "google" > /var/lib/cloud_provider
+    elif curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.azEnvironment' 2>&1 > /dev/null; then
+        echo "azure"
+        echo "azure" > /var/lib/cloud_provider
     else
         echo "aws"
         echo "aws" > /var/lib/cloud_provider
@@ -96,6 +99,58 @@ function get_capped_ram_mb_by_percent() {
     fi
 }
 
+function set_datadog_key() {
+    local DD_API_KEY="${1}"
+    local DD_CONFIG_FILE="${2:-/etc/datadog-agent/datadog.yaml}"
+    cat <<EOF > "${DD_CONFIG_FILE}"
+api_key: ${DD_API_KEY}
+bind_host: 0.0.0.0
+EOF
+    systemctl enable datadog-agent
+    systemctl start datadog-agent
+}
+
+function set_newrelic_infra_key() {
+    local NRIA_LICENSE_KEY="${1}"
+    local NRIA_LICENSE_FILE="${2:-/etc/newrelic-infra.yml}"
+    echo "license_key: ${NRIA_LICENSE_KEY}" > "${NRIA_LICENSE_FILE}"
+    systemctl enable newrelic-infra
+    systemctl start newrelic-infra
+}
+
+# Note: the function below requires get_tags function which
+#       is only present in bash_lib/<cloud>.sh
+function set_newrelic_statsd() {
+    local NR_API_KEY="${1}"
+    local NR_ACCOUNT_ID="${2}"
+    local NR_EU_REGION="${3:-false}"
+    local NR_STATSD_CFG="${4:-/etc/newrelic-infra/nri-statsd.toml}"
+    local NR_INSIGHTS_DOMAIN='newrelic.com'
+    local NR_METRICS_DOMAIN='newrelic.com'
+    local HOSTNAME_VALUE="$(hostname -f)"
+
+    if [ "${NR_EU_REGION}" == 'true' ]; then
+        NR_INSIGHTS_DOMAIN='eu01.nr-data.net'
+        NR_METRICS_DOMAIN="eu.${NR_METRICS_DOMAIN}"
+    fi
+
+    cat <<EOF > "${NR_STATSD_CFG}"
+hostname = "${HOSTNAME_VALUE}"
+default-tags = "hostname:${HOSTNAME_VALUE} $(get_tags)"
+percent-threshold = [90, 95, 99]
+backends='newrelic'
+[newrelic]
+flush-type = "metrics"
+transport = "default"
+address = "https://insights-collector.${NR_INSIGHTS_DOMAIN}/v1/accounts/${NR_ACCOUNT_ID}/events"
+address-metrics = "https://metric-api.${NR_METRICS_DOMAIN}/metric/v1"
+api-key = "${NR_API_KEY}"
+EOF
+
+    systemctl enable gostatsd
+    systemctl start gostatsd
+}
+
 function set_prompt_color() {
     local COLOR=$1
     echo -n "${COLOR}" > /etc/sysconfig/console/color
@@ -104,6 +159,9 @@ function set_prompt_color() {
 case "$(get_cloud)" in
     aws)
         source $(dirname ${BASH_SOURCE})/bash_lib/aws.sh
+        ;;
+    azure)
+        source $(dirname ${BASH_SOURCE})/bash_lib/azure.sh
         ;;
     *)
         echo 'ERROR: Unknown cloud provider, unable to proceed!'

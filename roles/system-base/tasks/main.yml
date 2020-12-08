@@ -54,10 +54,50 @@
     create: yes
   when: ivy_tag != "" # noqa 602
 
-- name: install datadog
-  shell:
-    creates: /etc/datadog-agent
-    cmd: "DD_API_KEY={{ datadog_api_key }} /opt/ivy/install_datadog.sh"
+- name: add datadog repo
+  yum_repository:
+    name: datadog
+    description: Datadog, Inc.
+    baseurl: https://yum.datadoghq.com/stable/7/x86_64/
+    gpgkey:
+      - https://yum.datadoghq.com/DATADOG_RPM_KEY_E09422B3.public
+      - https://yum.datadoghq.com/DATADOG_RPM_KEY_20200908.public
+    gpgcheck: yes
+    repo_gpgcheck: no
+
+- name: add new relic infrastructure repo
+  yum_repository:
+    name: newrelic-infra
+    description: New Relic Infrastructure
+    baseurl: https://download.newrelic.com/infrastructure_agent/linux/yum/el/7/$basearch
+    gpgkey: https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg
+    gpgcheck: yes
+    repo_gpgcheck: yes
+
+- name: install new relic infrastructure and datadog agents
+  yum:
+    name:
+      - newrelic-infra
+      - datadog-agent
+    update_cache: yes
+    disablerepo: '*'
+    enablerepo:
+      - newrelic-infra
+      - datadog
+
+- name: disable newrelic-infra and datadog-agent on first boot
+  service:
+    name: "{{ item }}"
+    enabled: no
+    state: stopped
+  loop:
+    - datadog-agent
+    - newrelic-infra
+
+- name: copy gostatsd systemd unit for new relic
+  copy:
+    src: etc/systemd/system/gostatsd.service
+    dest: /etc/systemd/system/gostatsd.service
 
 - name: setup syslog logrotation
   copy:
@@ -87,23 +127,20 @@
     dest: /etc/udev/rules.d/99-aws-ephemeral-devices.rules
     mode: 0644
 
-- name: add script to link instance storage to /dev/ephemeral
+- name: add scripts and binaries to /usr/loca/bin
   copy:
-    src: usr/local/bin/nextdevice
-    dest: /usr/local/bin/nextdevice
+    src: "usr/local/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
     mode: 0755
+  loop:
+    - bpftrace
+    - gostatsd
+    - nextdevice
 
 - name: install epel
   yum:
     name: epel-release
     state: latest
-
-- name: copy bpftrace to /usr/local/bin
-  copy:
-    remote_src: yes
-    src: /root/bpftrace
-    dest: /usr/local/bin/bpftrace
-    mode: 0755
 
 - name: install utilities
   yum:
