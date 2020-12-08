@@ -10,9 +10,11 @@
     dest: "/etc/cron.d/cassandra"
     mode: 0644
 
-- name: install java8
+- name: install java8 and new relic integration
   yum:
-    name: java-1.8.0-openjdk-headless
+    name:
+      - java-1.8.0-openjdk-headless
+      - nri-cassandra
     state: latest
 
 - name: remove openjdk-7

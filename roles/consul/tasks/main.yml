@@ -9,6 +9,7 @@
     name:
       - dnsmasq
       - socat
+      - nri-consul
     state: latest
 
 - name: enable dnsmasq
