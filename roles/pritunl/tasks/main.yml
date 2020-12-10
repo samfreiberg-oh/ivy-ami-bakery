@@ -1,0 +1,24 @@
+- name: add pritunl repo
+  yum_repository:
+    name: pritunl
+    description: Pritunl Repository
+    baseurl: https://repo.pritunl.com/stable/yum/centos/7/
+    gpgcheck: yes
+
+- name: trust pritunl key
+  rpm_key:
+    key: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x7568D9BB55FF9E5287D586017AE645C0CF8E292A
+    state: present
+
+- name: install packages
+  yum:
+    name:
+      - "pritunl-{{ pritunl_version }}"
+    state: present
+
+- name: disable pritunl on first boot
+  service:
+    name:
+      - pritunl
+    enabled: no
+    state: stopped
