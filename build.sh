@@ -113,7 +113,7 @@ function get_packer_vars() {
 function run_packer() {
     local ARGUMENTS="${1:-""}"
     echo "Downloading bpftrace"
-    bash ./scripts/bpftrace/download_bpftrace.sh
+    bash ./scripts/binaries/download_binaries.sh
     # This is needed when using RedHat based distros
     # More info at https://www.packer.io/intro/getting-started/install.html#troubleshooting
     PACKER_BINS=( $(type -a packer | awk '{ print $3 }') )
