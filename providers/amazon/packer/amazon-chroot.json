@@ -5,7 +5,7 @@
         "ami_regions": "{{env `PACKER_IMAGE_REGIONS`}}",
         "source_ami": "{{env `PACKER_SOURCE_IMAGE`}}",
         "volume_size": "{{env `PACKER_VOLUME_SIZE`}}",
-        "ivy_tag": "{{env `PACKER_IVY_TAG`}}",
+        "ivy_tag": "{{env `PACKER_IVY_TAG`}}"
     },
     "builders": [
         {
