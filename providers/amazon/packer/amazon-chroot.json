@@ -27,7 +27,8 @@
               ["tmpfs", "tmpfs", "/dev/shm"],
               ["bind", "/var/run", "/var/opt"]
             ],
-            "root_volume_size": "{{user `volume_size`}}"
+            "root_volume_size": "{{user `volume_size`}}",
+            "device_path": "/dev/sdf"
         }
     ],
     "provisioners": [
