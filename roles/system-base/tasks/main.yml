@@ -54,15 +54,6 @@
     create: yes
   when: ivy_tag != "" # noqa 602
 
-- name: add azure cli repo
-  yum_repository:
-    name: azure-cli
-    description: Azure CLI
-    baseurl: https://packages.microsoft.com/yumrepos/azure-cli
-    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
-    gpgcheck: yes
-    repo_gpgcheck: no
-
 - name: add datadog repo
   yum_repository:
     name: datadog
@@ -134,7 +125,6 @@
 - name: install utilities
   yum:
     name:
-      - azure-cli
       - bcc
       - curl
       - datadog-agent
@@ -173,7 +163,6 @@
       - systemd-devel
     state: latest
     enablerepo:
-      - azure-cli
       - datadog
       - epel
       - newrelic-infra
@@ -218,3 +207,9 @@
 - name: install awscli v2
   shell:
     cmd: /tmp/aws/install --update
+
+- name: install pip packages
+  pip:
+    name:
+      - azure-cli
+    executable: pip3
