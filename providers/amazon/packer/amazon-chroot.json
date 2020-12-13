@@ -28,7 +28,8 @@
               ["bind", "/var/run", "/var/opt"]
             ],
             "root_volume_size": "{{user `volume_size`}}",
-            "device_path": "/dev/sdf"
+            "device_path": "/dev/sdf",
+            "delete_on_termination": true
         }
     ],
     "provisioners": [
