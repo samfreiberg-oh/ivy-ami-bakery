@@ -13,7 +13,6 @@
 
 - name: disable rabbit on first boot
   service:
-    name:
-      - rabbitmq-server
+    name: rabbitmq-server
     enabled: no
     state: stopped

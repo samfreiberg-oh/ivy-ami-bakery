@@ -18,7 +18,6 @@
 
 - name: disable pritunl on first boot
   service:
-    name:
-      - pritunl
+    name: pritunl
     enabled: no
     state: stopped
