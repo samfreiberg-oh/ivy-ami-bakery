@@ -212,4 +212,3 @@
   pip:
     name:
       - azure-cli
-    executable: pip3
