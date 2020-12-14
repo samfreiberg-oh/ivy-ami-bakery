@@ -14,6 +14,13 @@ if [[ -z "${IVY}" ]]; then
     return 255
 fi
 
+function get_mdsv2() {
+    # Got from https://github.com/aws-quickstart/quickstart-hashicorp-vault/blob/master/scripts/functions.sh#L34-L37
+    local PARAMETER="${1}"
+    local TOKEN="$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 300" 2>/dev/null)"
+    echo $(curl --retry 3 --silent --fail -H "X-aws-ec2-metadata-token: ${TOKEN}" "http://169.254.169.254/latest/meta-data/${PARAMETER}" 2>/dev/null)
+}
+
 function get_instance_id() {
     echo $(curl --retry 3 --silent --fail http://169.254.169.254/latest/meta-data/instance-id)
 }
