@@ -296,3 +296,18 @@ EOF
     aws route53 change-resource-record-sets --hosted-zone-id ${HOSTED_ZONE_ID} --change-batch file://${TXN_FILE}
     rm -f ${TXN_FILE}
 }
+
+function get_ssm_param() {
+    local PARAMETER_NAME="${1}"
+    local EXTRA_AWS_CLI_PARAMS="${2:-''}"
+    local REGION="${3:-$(get_region)}"
+    local VALUE=$(aws ssm get-parameter --region "${REGION}" --name "${PARAMETER_NAME}" ${EXTRA_AWS_CLI_PARAMS} | jq -r ".Parameter|.Value" )
+    echo ${VALUE}
+}
+
+function get_secret() {
+    local SECRET_ID="${1}"
+    local REGION="${2:-$(get_region)}"
+    local VALUE=$(aws secretsmanager --region "${REGION}" get-secret-value --secret-id "${SECRET_ID}" | jq --raw-output .SecretString)
+    echo ${VALUE}
+}
