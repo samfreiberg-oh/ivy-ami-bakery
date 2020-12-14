@@ -45,7 +45,7 @@
             "playbook_file": "./providers/amazon/images/{{user `ami_name`}}/provision.yml",
             "playbook_dir": "./roles",
             "extra_arguments": [
-                "--extra-vars \"ivy_tag={{user `ivy_tag`}} ansible_python_interpreter=/usr/bin/python3\""
+                "--extra-vars \"ivy_tag={{user `ivy_tag`}}\""
             ],
             "clean_staging_directory": true
         },
