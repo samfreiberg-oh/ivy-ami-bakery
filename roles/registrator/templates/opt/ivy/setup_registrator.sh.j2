@@ -11,4 +11,4 @@ docker run \
     --restart always \
     --net=host \
     -v /var/run/docker.sock:/tmp/docker.sock \
-    gliderlabs/registrator:v6 -resync 300 consul://localhost:8500
+    {{ registrator_docker_image }} -resync 300 consul://localhost:8500

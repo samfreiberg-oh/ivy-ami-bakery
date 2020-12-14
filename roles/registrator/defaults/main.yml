@@ -1,0 +1,4 @@
+---
+registrator_version: "v6"
+registrator_docker_repository: "gliderlabs/registrator"
+registrator_docker_image: "{{ registrator_docker_repository }}:{{ registrator_version }}"

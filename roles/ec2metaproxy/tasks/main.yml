@@ -8,7 +8,7 @@
     accept_hostkey: yes
     version: "{{ ec2metaproxy_version }}"
 
-- name: pull ec2metaproxy container
+- name: pull ec2metaproxy image
   docker_image:
     pull: yes
     name: "{{ ec2metaproxy_docker_image }}"
