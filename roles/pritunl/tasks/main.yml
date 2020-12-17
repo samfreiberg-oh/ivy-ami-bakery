@@ -16,6 +16,9 @@
 
 - name: disable pritunl on first boot
   service:
-    name: pritunl
+    name: "{{ item }}"
     enabled: no
     state: stopped
+  loop:
+    - pritunl
+    - mongod
