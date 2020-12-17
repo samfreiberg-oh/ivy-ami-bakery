@@ -1,17 +1,6 @@
-- name: add mongodb repo
-  yum_repository:
-    name: mongodb-org-4.0
-    description: MongoDB Repository
-    baseurl: https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/
-    gpgcheck: yes
-    gpgkey: https://www.mongodb.org/static/pgp/server-4.0.asc
-
-- name: add pritunl repo
-  yum_repository:
-    name: pritunl
-    description: Pritunl Repository
-    baseurl: https://repo.pritunl.com/stable/yum/centos/7/
-    gpgcheck: yes
+---
+# Import tasks for the specific OS being built
+- include: "{{ ansible_distribution }}.yml"
 
 - name: trust pritunl key
   rpm_key:
