@@ -42,7 +42,7 @@ function get_cloud() {
     if echo "${META_TEST}" | grep "computeMetadata" 2>&1 > /dev/null; then
         echo "google"
         echo "google" > /var/lib/cloud_provider
-    elif curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.azEnvironment' 2>&1 > /dev/null; then
+    elif curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' || false; then
         echo "azure"
         echo "azure" > /var/lib/cloud_provider
     else
