@@ -3,7 +3,7 @@
 # TODO: Redo this. there's no reason this should be a docker container other than your laziness.
 
 #- name: ensure docker is stopped if running on Amazon because we use chroot bindmount
-#  service:
+#  systemd:
 #    name: docker
 #    state: stopped
 #  when: ansible_distribution == 'Amazon'

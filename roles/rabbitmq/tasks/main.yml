@@ -12,7 +12,7 @@
     state: present
 
 - name: disable rabbit on first boot
-  service:
+  systemd:
     name: rabbitmq-server
     enabled: no
     state: stopped

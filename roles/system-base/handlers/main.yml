@@ -1,4 +1,4 @@
 ---
 
 - name: restart hostname
-  service: name=hostname state=restarted
+  systemd: name=hostname state=restarted

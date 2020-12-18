@@ -14,8 +14,8 @@
       - mongodb-org
     state: present
 
-- name: disable pritunl on first boot
-  service:
+- name: disable pritunl and mongod on first boot
+  systemd:
     name: "{{ item }}"
     enabled: no
     state: stopped

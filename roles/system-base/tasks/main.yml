@@ -9,13 +9,6 @@
     dest: /etc/security/limits.conf
     mode: 0644
 
-#- name: root authorized_key
-#  authorized_key:
-#    user: root
-#    key: "{{ item }}"
-#  with_file:
-#    - public_keys/infeng
-
 - name: create ivy user
   user:
     name: ivy
@@ -168,7 +161,7 @@
       - newrelic-infra
 
 - name: disable newrelic-infra and datadog-agent on first boot
-  service:
+  systemd:
     name: "{{ item }}"
     enabled: no
     state: stopped
