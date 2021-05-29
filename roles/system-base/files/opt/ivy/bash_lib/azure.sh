@@ -51,7 +51,7 @@ function get_tag_value() {
     echo "${tags["${tag_key_to_query}"]}"
 }
 
-function get_environment() {
+function get_sysenv() {
     get_tag_value "$(get_ivy_tag):sysenv"
 }
 

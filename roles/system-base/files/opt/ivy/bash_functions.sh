@@ -64,8 +64,8 @@ function get_ip_from_interface() {
 function set_hostname() {
     local HOST=$1
 
-    local ENV=$(get_environment)
-    local HOST_FULL="${HOST}.node.${ENV}.$(get_ivy_tag)"
+    local SYSENV=$(get_sysenv)
+    local HOST_FULL="${HOST}.node.${SYSENV}.$(get_ivy_tag)"
 
     hostnamectl set-hostname ${HOST}
 
