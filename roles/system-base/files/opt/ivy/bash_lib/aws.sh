@@ -34,7 +34,7 @@ function get_region() {
     echo ${availability_zone%?}
 }
 
-function get_environment() {
+function get_sysenv() {
     local REGION=$(get_region)
     local INSTANCE_ID=$(get_instance_id)
 
@@ -89,10 +89,10 @@ function get_eni_id() {
     local SERVICE=$2
 
     local REGION=$(get_region)
-    local ENV=$(get_environment)
+    local SYSENV=$(get_sysenv)
     local TAG=$(get_ivy_tag)
     echo $(aws ec2 describe-network-interfaces --region ${REGION} \
-           --filters Name=tag:"${TAG}:sysenv",Values="${ENV}" \
+           --filters Name=tag:"${TAG}:sysenv",Values="${SYSENV}" \
                      Name=tag:"${TAG}:role",Values="${ENI_ROLE}" \
                      Name=tag:"${TAG}:service",Values="${SERVICE}" \
            --query 'NetworkInterfaces[0].NetworkInterfaceId' \

@@ -5,7 +5,7 @@ IS_MASTER=$1
 NODE_NAME=$2
 
 CONFIGFILE="/etc/sysconfig/consul"
-ENV=$(get_environment)
+SYSENV=$(get_sysenv)
 TAG=$(get_ivy_tag)
 
 sed -i -e '/^#.*__IVY_TAG__/s/^#//' -e "s/__IVY_TAG__/${TAG}/" /etc/dnsmasq.d/10-dnsmasq
@@ -13,7 +13,7 @@ sed -i -e '/^#.*__IVY_TAG__/s/^#//' -e "s/__IVY_TAG__/${TAG}/" /etc/dnsmasq.d/10
 CONSUL_MASTERS=""
 if [[ $(get_cloud) -eq "aws" ]]; then
    MESOS_IPS=($(aws ec2 describe-network-interfaces --region $(get_region) \
-                   --filters Name=tag:"${TAG}:sysenv",Values="${ENV}"    \
+                   --filters Name=tag:"${TAG}:sysenv",Values="${SYSENV}"    \
                              Name=tag:"${TAG}:service",Values="Mesos"                 \
                    --query 'NetworkInterfaces[*].PrivateIpAddress'                \
                    --output text))
@@ -24,7 +24,7 @@ if [[ $(get_cloud) -eq "aws" ]]; then
 
     # Use tag key of $prefix:consul_master = $env
     # Disabled - cloud auto join finds instance ips, not ENIs
-    #CONSUL_MASTERS="-retry-join 'provider=aws tag_key=${TAG}:consul_master tag_value=${ENV}'"
+    #CONSUL_MASTERS="-retry-join 'provider=aws tag_key=${TAG}:consul_master tag_value=${SYSENV}'"
 fi
 
 # nuke existing config file
@@ -53,7 +53,7 @@ fi
 
 cat <<EOF >> ${CONFIGFILE}
 CONSUL_MASTERS="${CONSUL_MASTERS}"
-CONSUL_FLAGS="-datacenter=${ENV} -domain=${TAG}. -client=${CLIENT} -advertise='{{ GetDefaultInterfaces | limit 1 | attr \"address\" }}' -bind=0.0.0.0 -config-dir=/etc/consul.d -data-dir=/opt/consul/data"
+CONSUL_FLAGS="-datacenter=${SYSENV} -domain=${TAG}. -client=${CLIENT} -advertise='{{ GetDefaultInterfaces | limit 1 | attr \"address\" }}' -bind=0.0.0.0 -config-dir=/etc/consul.d -data-dir=/opt/consul/data"
 EOF
 
 if [ ! -z "${NODE_NAME}" ]; then
@@ -64,7 +64,7 @@ fi
 echo "Restarting dnsmasq"
 systemctl restart dnsmasq
 
-echo "Enabling consul service for DC=${ENV}"
+echo "Enabling consul service for DC=${SYSENV}"
 systemctl daemon-reload
 systemctl enable consul
 
