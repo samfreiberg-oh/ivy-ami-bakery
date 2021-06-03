@@ -9,3 +9,7 @@ ETCD_CLIENT_KEY=
 # apiserver's ssl certificate used for serving HTTPS requests and presenting to the kubelet to fetch logs/exec
 TLS_CERT_FILE=
 TLS_PRIVATE_KEY_FILE=
+
+# apiserver-proxy (aggregation) client certificate and key
+PROXY_CLIENT_CERT_FILE=
+PROXY_CLIENT_KEY_FILE=

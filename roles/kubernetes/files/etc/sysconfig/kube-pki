@@ -10,10 +10,6 @@ KUBE_CA_KEY=
 PROXY_CA=
 PROXY_CA_KEY=
 
-# proxy (aggregation) client certificate and key
-PROXY_CLIENT_CERT_FILE=
-PROXY_CLIENT_KEY_FILE=
-
 # service account keypair
 SERVICE_ACCOUNT_PUB=
 SERVICE_ACCOUNT_KEY=
