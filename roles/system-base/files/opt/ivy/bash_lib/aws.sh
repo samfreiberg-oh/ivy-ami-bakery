@@ -25,6 +25,10 @@ function get_instance_id() {
     echo $(curl --retry 3 --silent --fail http://169.254.169.254/latest/meta-data/instance-id)
 }
 
+function get_instance_type() {
+    echo $(curl --retry 3 --silent --fail http://169.254.169.254/latest/meta-data/instance-type)
+}
+
 function get_availability_zone() {
     echo $(curl --retry 3 --silent --fail http://169.254.169.254/latest/meta-data/placement/availability-zone)
 }
@@ -306,10 +310,8 @@ EOF
 
 function get_ssm_param() {
     local PARAMETER_NAME="${1}"
-    local EXTRA_AWS_CLI_PARAMS="${2:-''}"
     local REGION="${3:-$(get_region)}"
-    local VALUE=$(aws ssm get-parameter --region "${REGION}" --name "${PARAMETER_NAME}" ${EXTRA_AWS_CLI_PARAMS} | jq -r ".Parameter|.Value" )
-    echo ${VALUE}
+    aws ssm get-parameter --region "${REGION}" --name "${PARAMETER_NAME}" --with-decryption --output text --query 'Parameter.Value'
 }
 
 function get_secret() {

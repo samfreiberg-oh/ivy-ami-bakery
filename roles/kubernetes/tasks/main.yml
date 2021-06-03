@@ -1,0 +1,179 @@
+---
+- name: create kubernetes system user
+  user:
+    name: kubernetes
+    shell: /sbin/nologin
+    home: /var/empty
+    system: yes
+
+- name: add k8s repo
+  yum_repository:
+    name: kubernetes
+    enabled: no
+    description: Google Kubernetes official packages
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+    gpgcheck: yes
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+- name: install k8s tools
+  yum:
+    name: "{{ item }}-{{ k8s_version }}"
+    enablerepo: kubernetes
+    state: latest
+  loop:
+    - kubelet
+    - kubectl
+
+- name: install aws-iam-authenticator
+  get_url:
+    url: "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v{{ iam_authenticator_version }}/aws-iam-authenticator_{{ iam_authenticator_version }}_linux_{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+    dest: /usr/bin/aws-iam-authenticator
+    mode: 0755
+
+- name: make state dir for aws-iam-authenticator
+  file:
+    name: /var/lib/aws-iam-authenticator
+    state: directory
+    owner: kubernetes
+    group: kubernetes
+
+- name: download e2d (includes etcd)
+  unarchive:
+    # Use nxtlytics fork version
+    src: "https://github.com/nxtlytics/e2d/releases/download/v{{ e2d_version }}/e2d_{{ e2d_version }}_Linux_{{ ansible_architecture }}.tar.gz"
+    #src: "https://github.com/criticalstack/e2d/releases/download/v{{ e2d_version }}/e2d_{{ e2d_version }}_Linux_{{ ansible_architecture }}.tar.gz"
+    dest: /usr/bin/
+    remote_src: yes
+
+# TODO: download etcdctl for browsing etcd (and the wrapper script for setting up the https stuff)
+
+- name: download k8s server components
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/v{{ k8s_version }}/bin/linux/{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    mode: 0755
+  loop:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: copy k8s server systemd units
+  copy:
+    src: etc/systemd/system/{{ item }}
+    dest: /etc/systemd/system/{{ item }}
+    mode: 0644
+  loop:
+    - e2d.service
+    - aws-iam-authenticator.service
+    - kube-apiserver.service
+    - kube-scheduler.service
+    - kube-controller-manager.service
+
+- name: make kubelet systemd drop-in directory
+  file:
+    name: /etc/systemd/system/kubelet.service.d
+    state: directory
+
+- name: copy kubelet-common drop-in
+  copy:
+    src: etc/systemd/system/kubelet.service.d/10-kubelet-common.conf
+    dest: /etc/systemd/system/kubelet.service.d/10-kubelet-common.conf
+    mode: 0644
+
+- name: copy component configurations
+  copy:
+    src: etc/sysconfig/{{ item }}
+    dest: /etc/sysconfig/{{ item }}
+    mode: 0644
+  loop:
+      - aws-iam-authenticator
+      - e2d
+      - kube-apiserver
+      - kube-common
+      - kube-controller-manager
+      - kube-pki
+      - kube-scheduler
+      - kubelet
+
+- name: copy kubelet-default-labels script
+  copy:
+    src: opt/ivy/kubelet-default-labels.sh
+    dest: /opt/ivy/kubelet-default-labels.sh
+    mode: 0755
+
+- name: make /etc/kubernetes skeleton
+  file:
+    name: /etc/kubernetes/{{ item }}
+    state: directory
+  loop:
+    - pki
+    - etcd/pki
+    - manifests
+    - kubelet
+
+- name: make config dir for aws-iam-authenticator
+  file:
+    name: /etc/kubernetes/aws-iam-authenticator
+    state: directory
+    owner: kubernetes
+    group: kubernetes
+
+- name: install cloud-lifecycle-controller
+  yum:
+    name: "https://github.com/nxtlytics/cloud-lifecycle-controller/releases/download/{{ cloud_lifecycle_controller_version }}/cloud_lifecycle_controller_{{ cloud_lifecycle_controller_version }}_{{ ansible_architecture }}.tar.gz"
+    state: latest
+
+- name: make log dir for components
+  file:
+    name: /var/log/kubernetes
+    state: directory
+    owner: kubernetes
+    group: kubernetes
+
+- name: copy base kubelet config file
+  copy:
+    src: etc/kubernetes/kubelet/config.json
+    dest: /etc/kubernetes/kubelet/config.json
+
+- name: make /var/lib/kubelet skeleton
+  file:
+    name: /var/lib/kubelet
+    state: directory
+
+- name: make /var/lib/etcd skeleton
+  file:
+    name: /var/lib/etcd
+    state: directory
+    owner: kubernetes
+    group: kubernetes
+
+- name: make cni directories (compatibility with aws-node)
+  file:
+    name: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/cni/bin
+    - /etc/cni/net.d
+
+# aws-cni gets copied into the host's /opt/cni/bin by the daemonset's host volume mapping
+# so we just need the standard ones here to allow kubelet to be able to start it's infra containers
+- name: install cni utilities
+  unarchive:
+    src: "https://github.com/containernetworking/plugins/releases/download/v{{ cni_version }}/cni-plugins-linux-{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}-v{{ cni_version }}.tgz"
+    dest: /opt/cni/bin
+    remote_src: yes
+
+# aws-cni adds secondary ENIs to the instance dynamically, and it expects no third party utilities to manage the interfaces.
+# ec2-net-utils triggers an addition of all secondary IPs automatically which breaks aws-cni's expectations
+# and causes pods to be unable to communicate with the network as the pod's IP is assigned to the host incorrectly
+- name: remove ec2-net-utils as it conflicts with the AWS CNI
+  yum:
+    name: ec2-net-utils
+    state: removed
+
+# TODO: install traefik ingresscontroller locally
+# TODO: install coredns locally
+# TODO: install cilium locally
+
