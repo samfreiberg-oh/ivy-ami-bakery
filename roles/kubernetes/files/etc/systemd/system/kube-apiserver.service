@@ -38,5 +38,11 @@ ExecStart=/usr/bin/kube-apiserver \
     --kubelet-preferred-address-types=InternalIP,InternalDNS,Hostname,ExternalIP \
     --kubelet-client-certificate=${TLS_CERT_FILE} \
     --kubelet-client-key=${TLS_PRIVATE_KEY_FILE} \
+    --proxy-client-cert-file=${PROXY_CLIENT_CERT_FILE} \
+    --proxy-client-key-file=${PROXY_CLIENT_KEY_FILE} \
+    --requestheader-client-ca-file=${PROXY_CA} \
+    --requestheader-extra-headers-prefix=X-Remote-Extra- \
+    --requestheader-group-headers=X-Remote-Group \
+    --requestheader-username-headers=X-Remote-User \
     -v=${LOG_LEVEL} \
     ${AWS_AUTH_HOOK_CONFIG}

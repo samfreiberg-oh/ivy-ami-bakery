@@ -6,6 +6,10 @@ ETCD_CA_KEY=
 KUBE_CA=
 KUBE_CA_KEY=
 
+# proxy (aggregation) ca and key
+PROXY_CA=
+PROXY_CA_KEY=
+
 # service account keypair
 SERVICE_ACCOUNT_PUB=
 SERVICE_ACCOUNT_KEY=
