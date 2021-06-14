@@ -82,6 +82,17 @@
     dest: /etc/systemd/system/kubelet.service.d/10-kubelet-common.conf
     mode: 0644
 
+- name: make dd-agent systemd drop-in directory
+  file:
+    name: /etc/systemd/system/datadog-agent.service.d/
+    state: directory
+
+- name: copy dd-agent systemd drop-in
+  copy:
+    src: etc/systemd/datadog-agent.service.d/10-kubernetes.conf
+    dest: /etc/systemd/datadog-agent.service.d/10-kubernetes.conf
+    mode: 0644
+
 - name: copy component configurations
   copy:
     src: etc/sysconfig/{{ item }}
