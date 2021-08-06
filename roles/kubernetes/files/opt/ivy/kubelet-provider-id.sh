@@ -1,4 +1,4 @@
-bash -x
+#!/bin/bash
 source /opt/ivy/bash_functions.sh
 OUT_FILE=$1
 
