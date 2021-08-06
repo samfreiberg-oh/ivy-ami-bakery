@@ -148,6 +148,13 @@
     src: etc/kubernetes/kubelet/config.yaml
     dest: /etc/kubernetes/kubelet/config.yaml
 
+- name: copy 
+  copy:
+    #src: var/lib/kubelet/ivy-provider-id
+    #dest: /var/lib/kubelet/ivy-provider-id
+    src: opt/ivy/kubelet-provider-id.sh
+    dest: /opt/ivy/kubelet-provider-id.sh
+
 - name: make /var/lib/kubelet skeleton
   file:
     name: /var/lib/kubelet
