@@ -14,7 +14,11 @@
 
 - name: install kernel-ml >= {{ kernel_min }}
   yum:
-    name: "kernel-ml >= {{ kernel_min }}"
+    name:
+      - "kernel-ml >= {{ kernel_min }}"
+      - "kernel-ml-devel >= {{ kernel_min }}"
+      - "kernel-ml-headers >= {{ kernel_min }}"
+      - "kernel-ml-tools-libs-devel >= {{ kernel_min }}"
     enablerepo: elrepo-kernel
     state: latest
 
