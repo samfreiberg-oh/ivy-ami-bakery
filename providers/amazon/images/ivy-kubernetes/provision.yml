@@ -5,6 +5,5 @@
   connection: local
   roles:
     - system-base
-    - kernel-ng
     - docker
     - kubernetes
