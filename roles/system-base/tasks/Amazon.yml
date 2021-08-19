@@ -1,5 +1,40 @@
 ---
 #### Amazon Linux Specific Tweaks ####
+
+# Note: we can't just rpm install elrepo because it requires glibc=2.17, whereas we have glibc 2.26
+# ¯\_(ツ)_/¯
+- name: add elrepo-kernel repository
+  yum_repository:
+    name: elrepo-kernel
+    enabled: no
+    description: ELRepo.org Community Enterprise Linux Kernel Repository - el7
+    mirrorlist: http://mirrors.elrepo.org/mirrors-elrepo-kernel.el7
+    baseurl: http://elrepo.org/linux/kernel/el7/$basearch/
+    gpgcheck: no
+
+- name: Remove kernel-headers and kernel-tools
+  yum:
+    name:
+      - kernel-headers
+      - kernel-tools
+    state: absent
+
+- name: install kernel-ml >= {{ kernel_min }}
+  yum:
+    name:
+      - "kernel-ml >= {{ kernel_min }}"
+      - "kernel-ml-devel >= {{ kernel_min }}"
+      - "kernel-ml-headers >= {{ kernel_min }}"
+      - "kernel-ml-tools-libs-devel >= {{ kernel_min }}"
+    enablerepo: elrepo-kernel
+    state: latest
+
+- name: update grub to point to latest kernel
+  shell:
+    cmd: |
+      grub2-set-default 0
+      grub2-mkconfig -o /boot/grub2/grub.cfg
+
 - name: enable epel and bcc via amazon-linux-extras
   # Amazon-linux-extras is required to enable epel
   # noqa 301 305
