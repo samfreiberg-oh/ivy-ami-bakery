@@ -55,6 +55,7 @@ function setup_env() {
     local image=$2
     local regions="${3:-""}"
     local multiaccountprofile=${4}
+    local enableazurecompat="${5}"
 
     # Source the defaults
     source ./providers/${provider}/images/default/packer.env
@@ -75,6 +76,7 @@ function setup_env() {
     export PACKER_SSH_USERNAME
     export PACKER_VOLUME_SIZE
     export PACKER_IVY_TAG
+    export PACKER_ENABLE_AZURE_COMPAT="${enableazurecompat}"
 
     # Show options for tracking purposes
     cat <<EOT
@@ -86,6 +88,7 @@ PACKER_SOURCE_IMAGE_NAME=${PACKER_SOURCE_IMAGE_NAME}
 PACKER_SOURCE_IMAGE=${PACKER_SOURCE_IMAGE}
 PACKER_CONFIG_PATH=${PACKER_CONFIG_PATH}
 PACKER_IVY_TAG=${PACKER_IVY_TAG}
+PACKER_ENABLE_AZURE_COMPAT=${PACKER_ENABLE_AZURE_COMPAT}
 ------------------------------------------------------
 EOT
 
@@ -162,11 +165,12 @@ Bake AMI from Ansible roles using Packer
    -r    regions to copy this image to (comma separated values)
    -m    awscli profile that can assume role to list all accounts in this org
    -i    image to provision
+   -a    enable azure compatibility and copy image to azure after build
    -d    enable debug mode
 EOT
 }
 
-while getopts ":p:i:r:m:v:d" opt; do
+while getopts ":p:i:r:m:a:v:d" opt; do
     case ${opt} in
         v)
             vars="${OPTARG}"
@@ -182,6 +186,9 @@ while getopts ":p:i:r:m:v:d" opt; do
             ;;
         m)
             multiaccountprofile="${OPTARG}"
+            ;;
+        a)
+            enableazurecompat="true"
             ;;
 
         d)
@@ -213,6 +220,6 @@ validate_provider ${provider}
 validate_image ${provider} ${image}
 
 # do it nao
-setup_env ${provider} ${image} ${regions:-""} ${multiaccountprofile:-""}
+setup_env ${provider} ${image} ${regions:-""} ${multiaccountprofile:-""} ${enableazurecompat:-"false"}
 arguments=$(get_packer_vars ${vars:-""})
 run_packer "${arguments:-""}"
