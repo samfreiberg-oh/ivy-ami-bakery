@@ -165,12 +165,12 @@ Bake AMI from Ansible roles using Packer
    -r    regions to copy this image to (comma separated values)
    -m    awscli profile that can assume role to list all accounts in this org
    -i    image to provision
-   -a    enable azure compatibility and copy image to azure after build
+   -a    disable azure compatibility
    -d    enable debug mode
 EOT
 }
 
-while getopts ":p:i:r:m:a:v:d" opt; do
+while getopts ":p:i:r:m:v:ad" opt; do
     case ${opt} in
         v)
             vars="${OPTARG}"
@@ -188,7 +188,7 @@ while getopts ":p:i:r:m:a:v:d" opt; do
             multiaccountprofile="${OPTARG}"
             ;;
         a)
-            enableazurecompat="true"
+            enableazurecompat="false"
             ;;
 
         d)
@@ -220,6 +220,6 @@ validate_provider ${provider}
 validate_image ${provider} ${image}
 
 # do it nao
-setup_env ${provider} ${image} ${regions:-""} ${multiaccountprofile:-""} ${enableazurecompat:-"false"}
+setup_env ${provider} ${image} ${regions:-""} ${multiaccountprofile:-""} ${enableazurecompat:-"true"}
 arguments=$(get_packer_vars ${vars:-""})
 run_packer "${arguments:-""}"
