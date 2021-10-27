@@ -1,8 +1,11 @@
 [Unit]
 Description=kube-scheduler: intelligently assigns pods to nodes
 Documentation=https://kubernetes.io/docs/
-Wants=network-online.target
-After=network-online.target
+#Wants=network-online.target
+#After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
 
 [Service]
 User=kubernetes

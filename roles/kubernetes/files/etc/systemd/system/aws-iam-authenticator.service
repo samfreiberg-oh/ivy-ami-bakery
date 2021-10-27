@@ -1,8 +1,11 @@
 [Unit]
 Description=aws-iam-authenticator: use IAM tokens to authenticate against a kubernetes cluster
 Documentation=https://github.com/kubernetes-sigs/aws-iam-authenticator
-Wants=network-online.target
-After=network-online.target
+#Wants=network-online.target
+#After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
 
 [Service]
 User=kubernetes

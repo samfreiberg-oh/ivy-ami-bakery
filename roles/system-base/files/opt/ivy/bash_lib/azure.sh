@@ -15,20 +15,43 @@ if [[ -z "${IVY}" ]]; then
 fi
 
 function get_availability_zone() {
-    echo $(curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.zone')
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.zone'
 }
 
 function get_region() {
-    echo $(curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.location')
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.location'
 }
 
 function get_instance_id() {
-    echo $(curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.vmId')
+    # returns instance uuid, not usually what you want
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.vmId'
+}
+
+function get_name() {
+    # returns computerName, in a vmss this is `${computerNamePrefix}_${index}`
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.name'
+}
+
+function get_resource_id() {
+    # in a VMSS, this is the vmss id + index
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.resourceId'
+}
+
+function get_vmss_name() {
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.vmScaleSetName'
+}
+
+function get_vmss_index() {
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.resourceId | split("/")[-1]'
+}
+
+function get_resource_group() {
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.resourceGroupName'
 }
 
 function get_tags() {
     local SEPARATOR="${1:- }"
-    echo $(curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.tags' | tr ';' "${SEPARATOR}")
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.tags' | tr ';' "${SEPARATOR}"
 }
 
 function get_tag_value() {
@@ -65,4 +88,9 @@ function get_role() {
 
 function get_group() {
     get_tag_value "$(get_ivy_tag):group"
+}
+
+function get_keyvault_key() {
+    local KEY_URI=${1}
+    az keyvault secret show --id "${KEY_URI}" --query 'value' -o tsv
 }

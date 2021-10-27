@@ -40,14 +40,14 @@ function get_cloud() {
 
     local META_TEST=$(curl --retry 3 --silent --fail http://169.254.169.254/)
     if echo "${META_TEST}" | grep "computeMetadata" 2>&1 > /dev/null; then
-        echo "google"
-        echo "google" > /var/lib/cloud_provider
+        echo -n "google"
+        echo -n "google" > /var/lib/cloud_provider
     elif curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' || false; then
-        echo "azure"
-        echo "azure" > /var/lib/cloud_provider
+        echo -n "azure"
+        echo -n "azure" > /var/lib/cloud_provider
     else
-        echo "aws"
-        echo "aws" > /var/lib/cloud_provider
+        echo -n "aws"
+        echo -n "aws" > /var/lib/cloud_provider
     fi
 }
 
