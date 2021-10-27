@@ -1,8 +1,11 @@
 [Unit]
 Description=e2d: wrap etcd with a warm gossip-based embrace
 Documentation=https://github.com/criticalstack/e2d
-Wants=network-online.target
-After=network-online.target
+#Wants=network-online.target
+#After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
 
 [Service]
 User=kubernetes

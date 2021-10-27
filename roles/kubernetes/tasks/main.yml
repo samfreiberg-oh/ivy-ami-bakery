@@ -47,7 +47,21 @@
     dest: /usr/bin/
     remote_src: yes
 
-# TODO: download etcdctl for browsing etcd (and the wrapper script for setting up the https stuff)
+- name: download etcd for etcdctl
+  unarchive:
+    src: "https://github.com/etcd-io/etcd/releases/download/v{{ etcd_version }}/etcd-v{{ etcd_version }}-linux-{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}.tar.gz"
+    dest: /usr/bin/
+    extra_opts:
+      - --strip=1
+      - --wildcards
+      - '*/etcdctl'
+    remote_src: yes
+
+- name: copy etcdctl wrapper script
+  copy:
+    src: opt/ivy/etcdctl.sh
+    dest: /opt/ivy/etcdctl.sh
+    mode: 0755
 
 - name: download k8s server components
   get_url:
