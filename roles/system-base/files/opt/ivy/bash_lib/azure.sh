@@ -38,7 +38,7 @@ function get_instance_type() {
 # In azure get_provider_id is basically aliased to get_resource_id. This gives
 # us a common function call between aws and azure.
 function get_provider_id() {
-    echo "$(get_resource_id)"
+    echo "azure://$(get_resource_id)"
 }
 
 function get_name() {
