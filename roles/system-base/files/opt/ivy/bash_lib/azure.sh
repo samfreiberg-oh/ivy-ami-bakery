@@ -27,6 +27,15 @@ function get_instance_id() {
     curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.vmId'
 }
 
+function get_subscription_id() {
+    # returns instance uuid, not usually what you want
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.subscriptionId'
+}
+
+function get_instance_type() {
+    curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.vmSize'
+}
+
 function get_name() {
     # returns computerName, in a vmss this is `${computerNamePrefix}_${index}`
     curl -H 'Metadata:true' --retry 3 --silent --fail 'http://169.254.169.254/metadata/instance/compute?api-version=2019-06-01' | jq -r '.name'
